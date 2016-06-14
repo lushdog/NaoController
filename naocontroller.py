@@ -27,7 +27,8 @@ class NaoController:
         while (string.lower(command) != 'exit'):
             parsed_command = self.parse_command(command)
             if (parsed_command):
-               self.invoke_command(proxy, *parsed_command)            
+                print parsed_command
+                self.invoke_command(proxy, *parsed_command)            
             else:
                 print 'Command format was invalid'
                 self.print_usage()
