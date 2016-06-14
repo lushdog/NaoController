@@ -1,6 +1,7 @@
 import unittest
 import mock
 import string
+import random
 
 import naocontroller as nc
 
@@ -18,15 +19,22 @@ class NaoControllerTests(unittest.TestCase):
         robot.port = '@@@'
         self.assertIsNone(robot.connect_to_robot())
     
-    def test_first_command_is_exit_command_loop_exits(self):
+    def test_command_loop_first_input_is_exit_does_exit(self):
         robot = nc.NaoController()
         robot.get_command = mock.Mock(side_effect=['exit'])
-        robot.parse_command = mock.Mock()
         robot.command_loop(None)
-        self.assertEqual(robot.parse_command.call_count, 0)
+        self.assertEqual(robot.get_command.call_count, 1)
+
+    def test_command_loop_not_first_input_is_exit_loop_then_exit(self):
+        robot = nc.NaoController()
+        robot.get_command = mock.Mock(side_effect=['foo', 'exit'])
+        robot.parse_command = mock.Mock(return_value=[None])
+        robot.invoke_command = mock.Mock()
+        robot.command_loop(None)
+        self.assertEqual(robot.parse_command.call_count, 1)  
+
     
-    #test command_loop (typing exit does indeed exit, 2 valid then exit, invalid then exit, invalid command prints usage)
-    #test invoke_command (
+    #test command_loop (non_exit_input with good date invokes command, non_exit_input with bad data does not invoke command)
         
     #regex tests
     def test_parse_command_empty(self):
