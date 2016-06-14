@@ -6,18 +6,25 @@ import naocontroller as nc
 
 class NaoControllerTests(unittest.TestCase):
 
-    #NaoController class tests
-    def test_print_usage_called_from_main(self):
+    def test_connection_bad_ip_returns_none(self):
         robot = nc.NaoController()
-        robot.connect_to_robot = mock.Mock() #fake connection
-        robot.invoke_command = mock.Mock()   #fake invoking the command
-        robot.get_command = mock.Mock(side_effect=['exit']) #exit the command loop
-        robot.print_usage = mock.Mock()
-        
-        robot.main()
-        robot.print_usage.assert_called_with()
+        robot.ip = '$$$'
+        robot.port = 9559
+        self.assertIsNone(robot.connect_to_robot())
 
-    #test connect_to_robot (get proper exception and don't enter loop)
+    def test_connection_bad_port_returns_none(self):
+        robot = nc.NaoController()
+        robot.ip = '192.168.1.1'
+        robot.port = '@@@'
+        self.assertIsNone(robot.connect_to_robot())
+    
+    def test_first_command_is_exit_command_loop_exits(self):
+        robot = nc.NaoController()
+        robot.get_command = mock.Mock(side_effect=['exit'])
+        robot.parse_command = mock.Mock()
+        robot.command_loop(None)
+        self.assertEqual(robot.parse_command.call_count, 0)
+    
     #test command_loop (typing exit does indeed exit, 2 valid then exit, invalid then exit, invalid command prints usage)
     #test invoke_command (
         
