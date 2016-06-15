@@ -35,18 +35,21 @@ class NaoController:
                 print "Error was: ", e
 
     def print_usage(self):
-        print 'Command format:"Text to say" "Animation tag while text is playing" or PostureToAssume'
+        print 'Text to speech command:"Text to say" "Animation tag while text is playing"'
+        print 'Posture command: Posture'
         print 'Example: "Hello, how are you" "Bow"'
+        print 'Example" "That is not correct" "Incorrect"'
         print 'Example: Sit'
+        print 'Example: Stand'
         print 'Quit by typing "exit" (without quotes)'
 
-    def command_loop(self, proxy):
+    def command_loop(self):
         command = self.get_command()
         while (string.lower(command) != 'exit'):
             parsed_command = self.parse_command(command)
             if (parsed_command):
                 print parsed_command
-                self.invoke_command(proxy, *parsed_command)            
+                self.invoke_command(*parsed_command)            
             else:
                 print 'Command format was invalid'
                 self.print_usage()
@@ -74,35 +77,37 @@ class NaoController:
             self.invoke_posture(posture)
             
     def invoke_speech(self, speech, animation):
-        animatedSpeech = '^startTag({0}) "{1}" ^waitTag({0})'.format(animation, speech)
+        animatedSpeech = '^startTag({0}) "{1}" ^waitTag({0})'.format(animation.lower(), speech)
         self.tts_proxy.say(animatedSpeech)
 
     def invoke_posture(self, posture):
-        posture = string.lower(posture)
+        posture = posture.lower()
         if (posture == 'sit'):
             self.invoke_sit()
         elif (posture == 'stand'):
             self.invoke_stand()
 
     def invoke_stand(self):
+        print 'Standing...'
         self.set_body_stiffness(1.0)
         self.set_pose('StandInit')
 
     def invoke_sit(self):
+        print 'Sitting...'
         self.set_pose('Sit')
         self.set_body_stiffness(0.0)
 
-    def set_body_stiffness(stiffness):
-        self.motion_proxy.stiffnessInterpolation("Body", stiffness, stiffness) 
+    def set_body_stiffness(self, stiffness):
+        self.motion_proxy.stiffnessInterpolation("Body", stiffness, 1.0) 
 
-    def set_pose(pose):
+    def set_pose(self, pose):
         self.posture_proxy.goToPosture(pose, 0.5)
     
     def main(self):
         self.connect_to_robot()
         if (self.tts_proxy and self.motion_proxy and self.posture_proxy):
             self.print_usage()
-            self.command_loop(proxy)
+            self.command_loop()
 
     def __init__(self):
         self.ip = None

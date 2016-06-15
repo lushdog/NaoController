@@ -28,7 +28,7 @@ class NaoControllerTests(unittest.TestCase):
     def test_command_loop_first_input_is_exit_does_exit(self):
         robot = nc.NaoController()
         robot.get_command = mock.Mock(side_effect=['exit'])
-        robot.command_loop(None)
+        robot.command_loop()
         self.assertEqual(robot.get_command.call_count, 1)
 
     def test_command_loop_not_first_input_is_exit_loop_then_exit(self):
@@ -36,7 +36,7 @@ class NaoControllerTests(unittest.TestCase):
         robot.get_command = mock.Mock(side_effect=['foo', 'exit'])
         robot.parse_command = mock.Mock(return_value=[None])
         robot.invoke_command = mock.Mock()
-        robot.command_loop(None)
+        robot.command_loop()
         self.assertEqual(robot.parse_command.call_count, 1)
         self.assertEqual(robot.invoke_command.call_count, 1)
 
