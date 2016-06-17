@@ -12,7 +12,7 @@ class NaoControllerTests(unittest.TestCase):
         robot.ip = '$$$'
         robot.port = 9559
         robot.connect_to_robot()
-        self.assertIsNone(robot.tts_proxy)
+        self.assertIsNone(robot.anim_speech_proxy)
         self.assertIsNone(robot.motion_proxy)
         self.assertIsNone(robot.posture_proxy)
 
@@ -21,7 +21,7 @@ class NaoControllerTests(unittest.TestCase):
         robot.ip = '192.168.1.1'
         robot.port = '@@@'
         robot.connect_to_robot()
-        self.assertIsNone(robot.tts_proxy)
+        self.assertIsNone(robot.anim_speech_proxy)
         self.assertIsNone(robot.motion_proxy)
         self.assertIsNone(robot.posture_proxy)
     
@@ -109,6 +109,9 @@ class NaoControllerTests(unittest.TestCase):
         self.assertIsNone(nc.NaoController.parse_command('"Sp"eech" "Animation"'))
     def test_parse_command_no_animation_returns_none(self):
         self.assertIsNone(nc.NaoController.parse_command('"Speech Animation"'))
-                         
+    def test_parse_command_backslash_in_speech_returns_none(self):
+        self.assertIsNone(nc.NaoController.parse_command('"Spe\ech" "Animation"'))
+   
+                     
 if __name__ == '__main__':
     unittest.main()
