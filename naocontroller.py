@@ -9,18 +9,18 @@ from naoqi import ALProxy
 class NaoController:
 
     def connect_to_robot(self):
-        self.tts_proxy = None
+        self.anim_speech_proxy = None
         self.motion_proxy = None
         self.posture_proxy = None
 
         print "Connecting to robot..."
         try:
-            self.tts_proxy = ALProxy("ALAnimatedSpeech", self.ip, self.port)
+            self.anim_speech_proxy = ALProxy("ALAnimatedSpeech", self.ip, self.port)
         except Exception, e:
             print "Could not create proxy to ALAnimatedSpeech"
             print "Error was: ", e
 
-        if (self.tts_proxy):
+        if (self.anim_speech_proxy):
             try:
                 self.motion_proxy = ALProxy("ALMotion", self.ip, self.port)
             except Exception, e:
@@ -60,7 +60,7 @@ class NaoController:
 
     @staticmethod
     def parse_command(command):
-        match_pattern = '^"([^"]*)"\s+"([A-Za-z]*)"$|^(?i)(Stand|Sit)$'
+        match_pattern = '^"([^"\\\\]*)"\s+"([A-Za-z]*)"$|^(?i)(Stand|Sit)$'
         match = re.match(match_pattern, command)
         if(match):
             speech = match.group(1)
@@ -77,8 +77,8 @@ class NaoController:
             self.invoke_posture(posture)
             
     def invoke_speech(self, speech, animation):
-        animatedSpeech = '^startTag({0}) "{1}" ^waitTag({0})'.format(animation.lower(), speech)
-        self.tts_proxy.say(animatedSpeech)
+        animatedSpeech = '^startTag({0}) "\\rspd={2}\\{1}" ^waitTag({0})'.format(animation.lower(), speech, defaults.SPEECH_SPEED)
+        self.anim_speech_proxy.say(animatedSpeech)
 
     def invoke_posture(self, posture):
         posture = posture.lower()
@@ -105,7 +105,7 @@ class NaoController:
     
     def main(self):
         self.connect_to_robot()
-        if (self.tts_proxy and self.motion_proxy and self.posture_proxy):
+        if (self.anim_speech_proxy and self.motion_proxy and self.posture_proxy):
             self.print_usage()
             self.command_loop()
 
