@@ -8,22 +8,18 @@ import naocontroller as nc
 class NaoControllerTests(unittest.TestCase):
 
     def test_connection_bad_ip_returns_all_proxies_none(self):
+        print 'Testing bad ip...'
         robot = nc.NaoController()
         robot.ip = '$$$'
         robot.port = 9559
-        robot.connect_to_robot()
-        self.assertIsNone(robot.anim_speech_proxy)
-        self.assertIsNone(robot.motion_proxy)
-        self.assertIsNone(robot.posture_proxy)
+        self.assertEqual(robot.connect_to_robot(), False)
 
     def test_connection_bad_port_returns_none(self):
+        print 'Testing bad port...'
         robot = nc.NaoController()
         robot.ip = '192.168.1.1'
         robot.port = '@@@'
-        robot.connect_to_robot()
-        self.assertIsNone(robot.anim_speech_proxy)
-        self.assertIsNone(robot.motion_proxy)
-        self.assertIsNone(robot.posture_proxy)
+        self.assertEqual(robot.connect_to_robot(), False)
     
     def test_command_loop_first_input_is_exit_does_exit(self):
         robot = nc.NaoController()

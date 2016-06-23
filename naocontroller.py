@@ -8,31 +8,24 @@ from naoqi import ALProxy
 
 class NaoController:
 
+    ANIM_SPEECH_LIB = "ALAnimatedSpeech"
+    MOTION_LIB = "ALMotion"
+    POSTURE_LIB = "ALRobotPosture"
+    BASIC_AWARE_LIB = "ALBasicAwareness"
+    AUTONOMOUS_LIB = "ALAutonomousMoves"
+
     def connect_to_robot(self):
-        self.anim_speech_proxy = None
-        self.motion_proxy = None
-        self.posture_proxy = None
-
         print "Connecting to robot..."
-        try:
-            self.anim_speech_proxy = ALProxy("ALAnimatedSpeech", self.ip, self.port)
-        except Exception, e:
-            print "Could not create proxy to ALAnimatedSpeech"
-            print "Error was: ", e
-
-        if (self.anim_speech_proxy):
+        proxy_libs = [self.ANIM_SPEECH_LIB, self.MOTION_LIB, self.POSTURE_LIB, self.BASIC_AWARE_LIB, self.AUTONOMOUS_LIB]
+        self.robot_proxies = {}
+        for lib in proxy_libs:
             try:
-                self.motion_proxy = ALProxy("ALMotion", self.ip, self.port)
+                self.robot_proxies[lib] = ALProxy(lib, self.ip, self.port)
             except Exception, e:
-                print "Could not create proxy to ALMotion"
+                print "Could not create proxy to ", lib
                 print "Error was: ", e
-
-        if (self.motion_proxy):
-            try:
-                self.posture_proxy = ALProxy("ALRobotPosture", self.ip, self.port)
-            except Exception, e:
-                print "Could not create proxy to ALRobotPosture"
-                print "Error was: ", e
+                return False
+        return True
 
     def print_usage(self):
         print 'Text to speech command:"Text to say" "Animation tag while text is playing"'
@@ -48,7 +41,7 @@ class NaoController:
         while (string.lower(command) != 'exit'):
             parsed_command = self.parse_command(command)
             if (parsed_command):
-                print parsed_command
+                #print parsed_command
                 self.invoke_command(*parsed_command)            
             else:
                 print 'Command format was invalid'
@@ -78,7 +71,7 @@ class NaoController:
             
     def invoke_speech(self, speech, animation):
         animatedSpeech = '^startTag({0}) "\\rspd={2}\\{1}" ^waitTag({0})'.format(animation.lower(), speech, defaults.SPEECH_SPEED)
-        self.anim_speech_proxy.say(animatedSpeech)
+        self.robot_proxies[self.ANIM_SPEECH_LIB].anim_speech_proxy.say(animatedSpeech)
 
     def invoke_posture(self, posture):
         posture = posture.lower()
@@ -98,14 +91,13 @@ class NaoController:
         self.set_body_stiffness(0.0)
 
     def set_body_stiffness(self, stiffness):
-        self.motion_proxy.stiffnessInterpolation("Body", stiffness, 1.0) 
+        self.robot_proxies[self.MOTION_LIB].stiffnessInterpolation("Body", stiffness, 1.0) 
 
     def set_pose(self, pose):
-        self.posture_proxy.goToPosture(pose, 0.5)
+        self.robot_proxies[self.POSTURE_LIB].goToPosture(pose, 0.5)
     
     def main(self):
-        self.connect_to_robot()
-        if (self.anim_speech_proxy and self.motion_proxy and self.posture_proxy):
+        if (self.connect_to_robot()):
             self.print_usage()
             self.command_loop()
 
