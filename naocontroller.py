@@ -25,6 +25,9 @@ class NaoController:
                 print "Could not create proxy to ", lib
                 print "Error was: ", e
                 return False
+        #toggle awareness, otherwise awareness interrupt sit/stand command
+        self.set_awareness(True)
+        self.set_awareness(False)
         return True
 
     def print_usage(self):
@@ -74,10 +77,9 @@ class NaoController:
         self.robot_proxies[self.ANIM_SPEECH_LIB].anim_speech_proxy.say(animatedSpeech)
 
     def invoke_posture(self, posture):
-        posture = posture.lower()
-        if (posture == 'sit'):
+        if (posture.lower() == 'sit'):
             self.invoke_sit()
-        elif (posture == 'stand'):
+        elif (posture.lower() == 'stand'):
             self.invoke_stand()
 
     def invoke_stand(self):
@@ -95,6 +97,12 @@ class NaoController:
 
     def set_pose(self, pose):
         self.robot_proxies[self.POSTURE_LIB].goToPosture(pose, 0.5)
+
+    def invoke_awareness(self, set_on):
+        if (set_on):
+            self.robot_proxies[self.AUTONOMOUS_LIB].startAwareness()
+        else:
+            self.robot_proxies[self.AUTONOMOUS_LIB].stopAwareness()
     
     def main(self):
         if (self.connect_to_robot()):
