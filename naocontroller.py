@@ -12,11 +12,13 @@ class NaoController:
     MOTION_LIB = "ALMotion"
     POSTURE_LIB = "ALRobotPosture"
     BASIC_AWARE_LIB = "ALBasicAwareness"
-    AUTONOMOUS_LIB = "ALAutonomousMoves"
+    AUTONOMOUS_MOVES_LIB = "ALAutonomousMoves"
+    AUTONOMOUS_LIFE_LIB = "ALAutonomousLife"
 
     def connect_to_robot(self):
         print "Connecting to robot..."
-        proxy_libs = [self.ANIM_SPEECH_LIB, self.MOTION_LIB, self.POSTURE_LIB, self.BASIC_AWARE_LIB, self.AUTONOMOUS_LIB]
+        proxy_libs = [self.ANIM_SPEECH_LIB, self.MOTION_LIB, self.POSTURE_LIB,
+                      self.BASIC_AWARE_LIB, self.AUTONOMOUS_MOVES_LIB, self.AUTONOMOUS_LIFE_LIB]
         self.robot_proxies = {}
         for lib in proxy_libs:
             try:
@@ -25,9 +27,9 @@ class NaoController:
                 print "Could not create proxy to ", lib
                 print "Error was: ", e
                 return False
-        #toggle awareness, otherwise awareness interrupt sit/stand command
         self.set_awareness(True)
-        self.set_awareness(False)
+        self.set_autonomous_moves(True)
+        self.set_autonomous_life(True)
         return True
 
     def print_usage(self):
@@ -74,7 +76,7 @@ class NaoController:
             
     def invoke_speech(self, speech, animation):
         animatedSpeech = '^startTag({0}) "\\rspd={2}\\{1}" ^waitTag({0})'.format(animation.lower(), speech, defaults.SPEECH_SPEED)
-        self.robot_proxies[self.ANIM_SPEECH_LIB].anim_speech_proxy.say(animatedSpeech)
+        self.robot_proxies[self.ANIM_SPEECH_LIB].say(animatedSpeech)
 
     def invoke_posture(self, posture):
         if (posture.lower() == 'sit'):
@@ -85,7 +87,7 @@ class NaoController:
     def invoke_stand(self):
         print 'Standing...'
         self.set_body_stiffness(1.0)
-        self.set_pose('StandInit')
+        self.set_pose('Stand')
 
     def invoke_sit(self):
         print 'Sitting...'
@@ -98,11 +100,23 @@ class NaoController:
     def set_pose(self, pose):
         self.robot_proxies[self.POSTURE_LIB].goToPosture(pose, 0.5)
 
-    def invoke_awareness(self, set_on):
+    def set_awareness(self, set_on):
         if (set_on):
-            self.robot_proxies[self.AUTONOMOUS_LIB].startAwareness()
+            self.robot_proxies[self.BASIC_AWARE_LIB].startAwareness()
         else:
-            self.robot_proxies[self.AUTONOMOUS_LIB].stopAwareness()
+            self.robot_proxies[self.BASIC_AWARE_LIB].stopAwareness()
+            
+    def set_autonomous_life(self, set_on):
+        if (set_on):
+            self.robot_proxies[self.AUTONOMOUS_LIFE_LIB].setState('solitary')
+        else:
+            self.robot_proxies[self.AUTONOMOUS_LIFE_LIB].setState('disabled')
+            
+    def set_autonomous_moves(self, set_on):
+        if (set_on):
+            self.robot_proxies[self.AUTONOMOUS_MOVES_LIB].setBackgroundStrategy('backToNeutral')
+        else:
+            self.robot_proxies[self.AUTONOMOUS_MOVES_LIB].setBackgroundStrategy('none')
     
     def main(self):
         if (self.connect_to_robot()):
