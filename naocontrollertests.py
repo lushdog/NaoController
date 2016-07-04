@@ -2,6 +2,7 @@ import unittest
 import mock
 import string
 import random
+from mock import patch
 
 import naocontroller as nc
 
@@ -23,58 +24,65 @@ class NaoControllerTests(unittest.TestCase):
     
     def test_command_loop_first_input_is_exit_does_exit(self):
         robot = nc.NaoController()
-        robot.get_command = mock.Mock(side_effect=['exit'])
+        robot.get_command = mock.Mock(side_effect=['exit', 'foo'])
         robot.command_loop()
         self.assertEqual(robot.get_command.call_count, 1)
 
-    def test_command_loop_not_first_input_is_exit_loop_then_exit(self):
+    def test_command_loop_second_input_is_exit_loop_then_exit(self):
         robot = nc.NaoController()
-        robot.get_command = mock.Mock(side_effect=['foo', 'exit'])
-        robot.parse_command = mock.Mock(return_value=[None])
-        robot.invoke_command = mock.Mock()
-        robot.command_loop()
-        self.assertEqual(robot.parse_command.call_count, 1)
-        self.assertEqual(robot.invoke_command.call_count, 1)
+        with patch.object(nc.NaoController, "parse_command") as mocked_parse_command:
+            robot.get_command = mock.Mock(side_effect=['foo', 'exit'])
+            mocked_parse_command.side_effect = [None]
+            robot.invoke_command = mock.Mock()
+            robot.command_loop()
+            self.assertEqual(nc.NaoController.parse_command.call_count, 1)
+            self.assertEqual(robot.invoke_command.call_count, 0)
 
     def test_invoke_command_with_speech_calls_invoke_speech(self):
         robot = nc.NaoController()
         robot.invoke_speech = mock.Mock()
-        robot.invoke_posture = mock.Mock()
+        robot.invoke_method = mock.Mock()
         robot.invoke_command("Speech", "Animation", None);
         robot.invoke_speech.assert_called_once_with("Speech", "Animation")
-        self.assertEqual(robot.invoke_posture.call_count, 0)
+        self.assertEqual(robot.invoke_method.call_count, 0)
 
     def test_invoke_command_with_posture_calls_invoke_posture(self):
         robot = nc.NaoController()
         robot.invoke_speech = mock.Mock()
-        robot.invoke_posture = mock.Mock()
+        robot.invoke_method = mock.Mock()
         robot.invoke_command(None, None, "Posture");
-        robot.invoke_posture.assert_called_once_with("Posture")
+        robot.invoke_method.assert_called_once_with("Posture")
         self.assertEqual(robot.invoke_speech.call_count, 0)
 
-    def test_invoke_posture_with_sit_calls_invoke_sit(self):
+    def test_invoke_method_with_sit_calls_invoke_sit(self):
         robot = nc.NaoController()
         robot.invoke_stand = mock.Mock()
         robot.invoke_sit = mock.Mock()
-        robot.invoke_posture('sit')
+        robot.invoke_method('sit')
         robot.invoke_sit.assert_called_once
         self.assertEqual(robot.invoke_stand.call_count, 0)
 
-    def test_invoke_posture_with_stand_calls_invoke_stand(self):
+    def test_invoke_method_with_stand_calls_invoke_stand(self):
         robot = nc.NaoController()
         robot.invoke_stand = mock.Mock()
         robot.invoke_sit = mock.Mock()
-        robot.invoke_posture('stand')
+        robot.invoke_method('stand')
         robot.invoke_stand.assert_called_once
         self.assertEqual(robot.invoke_sit.call_count, 0)
 
-    def test_invoke_posture_with_unknown_posture_calls_nothing(self):
+    def test_invoke_method_with_unknown_posture_calls_nothing(self):
         robot = nc.NaoController()
         robot.invoke_stand = mock.Mock()
         robot.invoke_sit = mock.Mock()
-        robot.invoke_posture('unkownposture')
+        robot.invoke_method('unkownposture')
         self.assertEqual(robot.invoke_stand.call_count, 0)
         self.assertEqual(robot.invoke_sit.call_count, 0)
+
+    def test_invoke_method_with_autolife(self):
+        robot = nc.NaoController()
+        robot.toggle_auto_life = mock.Mock()
+        robot.invoke_method('autolife')
+        self.assertEqual(robot.toggle_auto_life.call_count, 1)
     
     #test command_loop (non_exit_input with good date invokes command, non_exit_input with bad data does not invoke command)
         
@@ -87,6 +95,10 @@ class NaoControllerTests(unittest.TestCase):
         self.assertEqual(nc.NaoController.parse_command('Stand'), (None, None, 'Stand'))
     def test_parse_command_sit_posture_returns_valid(self):
         self.assertEqual(nc.NaoController.parse_command('Sit'), (None, None, 'Sit'))
+    def test_parse_command_autolife_in_speech_returns_valid(self):
+        self.assertEqual(nc.NaoController.parse_command('autolife'), (None, None, 'autolife'))
+    def test_parse_command_whitespaces_return_valid(self):
+        self.assertEqual(nc.NaoController.parse_command('    autolife   '), (None, None, 'autolife'))  
     def test_parse_command_unsupported_posture_returns_invalid(self):
         self.assertIsNone(nc.NaoController.parse_command('UnsupportedPosture'))
     def test_parse_command_posture_with_spaces_returns_invalid(self):
@@ -107,6 +119,7 @@ class NaoControllerTests(unittest.TestCase):
         self.assertIsNone(nc.NaoController.parse_command('"Speech Animation"'))
     def test_parse_command_backslash_in_speech_returns_none(self):
         self.assertIsNone(nc.NaoController.parse_command('"Spe\ech" "Animation"'))
+   
    
                      
 if __name__ == '__main__':
