@@ -8,47 +8,44 @@ from naoqi import ALProxy
 
 class NaoController:
 
+    ANIM_SPEECH_LIB = "ALAnimatedSpeech"
+    MOTION_LIB = "ALMotion"
+    POSTURE_LIB = "ALRobotPosture"
+    BASIC_AWARE_LIB = "ALBasicAwareness"
+    AUTONOMOUS_MOVES_LIB = "ALAutonomousMoves"
+    AUTONOMOUS_LIFE_LIB = "ALAutonomousLife"
+    PROXY_LIBS = [ANIM_SPEECH_LIB, MOTION_LIB, POSTURE_LIB,
+                BASIC_AWARE_LIB, AUTONOMOUS_MOVES_LIB, AUTONOMOUS_LIFE_LIB]
+
     def connect_to_robot(self):
-        self.anim_speech_proxy = None
-        self.motion_proxy = None
-        self.posture_proxy = None
-
         print "Connecting to robot..."
-        try:
-            self.anim_speech_proxy = ALProxy("ALAnimatedSpeech", self.ip, self.port)
-        except Exception, e:
-            print "Could not create proxy to ALAnimatedSpeech"
-            print "Error was: ", e
-
-        if (self.anim_speech_proxy):
+        self.robot_proxies = {}
+        for lib in self.PROXY_LIBS:
             try:
-                self.motion_proxy = ALProxy("ALMotion", self.ip, self.port)
+                self.robot_proxies[lib] = ALProxy(lib, self.ip, self.port)
             except Exception, e:
-                print "Could not create proxy to ALMotion"
+                print "Could not create proxy to ", lib
                 print "Error was: ", e
-
-        if (self.motion_proxy):
-            try:
-                self.posture_proxy = ALProxy("ALRobotPosture", self.ip, self.port)
-            except Exception, e:
-                print "Could not create proxy to ALRobotPosture"
-                print "Error was: ", e
+                return False
+        self.set_autonomous_life(False)
+        return True
 
     def print_usage(self):
         print 'Text to speech command:"Text to say" "Animation tag while text is playing"'
         print 'Posture command: Posture'
+        print 'Subsytem command: SubsystemToToggle'
         print 'Example: "Hello, how are you" "Bow"'
         print 'Example" "That is not correct" "Incorrect"'
         print 'Example: Sit'
-        print 'Example: Stand'
+        print 'Example: Autolife'
         print 'Quit by typing "exit" (without quotes)'
 
     def command_loop(self):
         command = self.get_command()
         while (string.lower(command) != 'exit'):
-            parsed_command = self.parse_command(command)
+            parsed_command = NaoController.parse_command(command)
             if (parsed_command):
-                print parsed_command
+                #print parsed_command
                 self.invoke_command(*parsed_command)            
             else:
                 print 'Command format was invalid'
@@ -60,52 +57,88 @@ class NaoController:
 
     @staticmethod
     def parse_command(command):
-        match_pattern = '^"([^"\\\\]*)"\s+"([A-Za-z]*)"$|^(?i)(Stand|Sit)$'
+        match_pattern = '^\s*"([^"\\\\]*)"\s+"([A-Za-z]*)"\s*$|^\s*(?i)(Stand|Sit|Autolife)\s*$'
         match = re.match(match_pattern, command)
         if(match):
             speech = match.group(1)
             animation = match.group(2)
-            posture = match.group(3)
-            return(speech, animation, posture)
+            method = match.group(3)
+            return(speech, animation, method)
         return None
 
-    def invoke_command(self, speech, animation, posture):
+    @staticmethod
+    def print_sub_system_update(set_on, sub_process):
+         print "Turning {on_off} {sub_process}...".format(on_off = 'on' if set_on == True else 'off', sub_process = sub_process)
+  
+    def invoke_command(self, speech, animation, method):
         "Sending command to Nao..."
         if (speech):
             self.invoke_speech(speech, animation)      
         else:
-            self.invoke_posture(posture)
+            self.invoke_method(method)
             
     def invoke_speech(self, speech, animation):
         animatedSpeech = '^startTag({0}) "\\rspd={2}\\{1}" ^waitTag({0})'.format(animation.lower(), speech, defaults.SPEECH_SPEED)
-        self.anim_speech_proxy.say(animatedSpeech)
+        self.robot_proxies[self.ANIM_SPEECH_LIB].say(animatedSpeech)
 
-    def invoke_posture(self, posture):
-        posture = posture.lower()
-        if (posture == 'sit'):
+    def invoke_method(self, method):
+        if (method.lower() == 'sit'):
             self.invoke_sit()
-        elif (posture == 'stand'):
+        elif(method.lower() == 'stand'):
             self.invoke_stand()
+        elif(method.lower() == 'autolife'):
+            self.toggle_auto_life()
 
     def invoke_stand(self):
         print 'Standing...'
         self.set_body_stiffness(1.0)
-        self.set_pose('StandInit')
-
+        self.set_pose('Stand')
+        self.set_breathing(True)
+        is_alive = self.get_autonomous_life()
+        
     def invoke_sit(self):
         print 'Sitting...'
+        self.set_breathing(False)
         self.set_pose('Sit')
         self.set_body_stiffness(0.0)
-
+        
     def set_body_stiffness(self, stiffness):
-        self.motion_proxy.stiffnessInterpolation("Body", stiffness, 1.0) 
+        print 'Setting stiffness to {stiffness}...'.format(stiffness = stiffness)
+        self.robot_proxies[self.MOTION_LIB].stiffnessInterpolation("Body", stiffness, 1.0) 
 
     def set_pose(self, pose):
-        self.posture_proxy.goToPosture(pose, 0.5)
-    
+        self.robot_proxies[self.POSTURE_LIB].goToPosture(pose, 0.5)
+        
+    def toggle_auto_life(self):
+        current_state = (self.robot_proxies[self.AUTONOMOUS_LIFE_LIB].getState() == 'solitary')
+        self.set_autonomous_life(not current_state)
+        
+    def set_autonomous_life(self, set_on):
+        NaoController.print_sub_system_update(set_on, 'Autonomous Life')
+        target_state = 'solitary' if set_on else 'disabled' #todo: this causes exception if the robot is in interactive state
+        self.robot_proxies[self.AUTONOMOUS_LIFE_LIB].setState(target_state)
+        
+    def get_autonomous_life(self):
+        return (self.robot_proxies[self.AUTONOMOUS_LIFE_LIB].getState() != 'disabled')
+            
+    def set_autonomous_moves(self, set_on):
+        NaoController.print_sub_system_update(set_on, 'Autonomous Moves')
+        target_state = 'backToNeutral' if set_on else 'none'
+        self.robot_proxies[self.AUTONOMOUS_MOVES_LIB].setBackgroundStrategy(target_state)
+        
+    def set_awareness(self, set_on):
+        NaoController.print_sub_system_update(set_on, 'Basic Awareness')
+        proxy = self.robot_proxies[self.BASIC_AWARE_LIB]
+        proxy.startAwareness() if set_on else proxy.stopAwareness()
+
+    def set_breathing(self, set_on):
+        NaoController.print_sub_system_update(set_on, 'body breathing')
+        self.robot_proxies[self.MOTION_LIB].setBreathEnabled('Body', set_on)
+        NaoController.print_sub_system_update(set_on, 'arm breathing')
+        self.robot_proxies[self.MOTION_LIB].setBreathEnabled('Arms', set_on)
+  
     def main(self):
-        self.connect_to_robot()
-        if (self.anim_speech_proxy and self.motion_proxy and self.posture_proxy):
+        if (self.connect_to_robot()):
             self.print_usage()
             self.command_loop()
 
