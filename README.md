@@ -23,11 +23,16 @@ HOW TO USE THE CONSOLE
 
 Text to speech command:"Text to say" "Animation tag while text is playing"
 Posture command: Posture
+Subsystem state toggle: Subsystem
 
 Example:> "Hello, how are you" "bow"
+
 Example:> "That is not correct" "incorrect"
+
 Example:> Sit
+
 Example:> Stand
+
 
 Quit console by typing "exit" (without quotes)
 
@@ -49,3 +54,7 @@ COMMANDS SUPPORTED
 	-Sit 
 	-Stand
 
+	*Sub-Systems*
+	Command format: "Subsystem to toggle"
+	Support subsystems:
+	-Autolife
