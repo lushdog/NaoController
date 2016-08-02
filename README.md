@@ -8,7 +8,6 @@ Type 'help' to see list of supported commands
 Type 'help command' to see help for certain command  
 
 ###Sample command usage
-
 'quit' - exits the session  
 'connect' - connects to nao using ip and port in the defaults.py file  
 'connect 192.168.1.1 9559' - connects to nao using ip and port specified  
