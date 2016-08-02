@@ -1,51 +1,27 @@
-# NaoController
+#NaoController
 Command line interface that can perform basic actions on the Nao robot.
 
-INVOKING THE SCRIPT
+Usage: python naocontroller.py [path to script file]
 
-Invoke via command line: 'python naocontroller.py'
+##How to use the console
+Type 'help' to see list of supported commands
+Type 'help command' to see help for certain command
 
-usage: naocontroller.py [-h] [-ip IP] [-port PORT]
-
-Connect to and start interactive session to send talk and animation commands
-to Nao.
-
-optional arguments:
-  -h, --help  show this help message and exit
-  -ip IP      IP (or hostname) of your Nao robot.
-  -port PORT  Port of your Nao robot.
-  
-If you invoke via python IDE or import NaoController class into another python script the intitial IP and Port 
-values are retrieved from defaults.py.
-
-
-HOW TO USE THE CONSOLE
-
-Text to speech command:"Text to say" "Animation tag while text is playing"
-Posture command: Posture
-
-Example:> "Hello, how are you" "bow"
-Example:> "That is not correct" "incorrect"
-Example:> Sit
-Example:> Stand
-
-Quit console by typing "exit" (without quotes)
+##Sample command usage
+'quit' - exits the session
+'connect' - connects to nao using ip and port in the defaults.py file
+'connect 192.168.1.1 9559' - connects to nao using ip and port specified
+###Connection must be made before any commands below can be issued
+'stand' - robot stands and commences body and arm breathing
+'sit' - robot sits and stops body and arm breathing
+'autolife' - toggles autonomous life setting on/off
+###Turn off autolife before issuing sit or stand (or other future pose) commands or else autolife will force the robot to return to its previous pose
+'move 12 1' - moves the robot forward 1 meter
+'move 3 1' - rotates the robot to face its right and then moves the robot forward one meter
+'move 9 -2' - rotates the robot to face its left and then moves the robot backwards two meters
+'say' - user is prompted for text to say and an animation to run while text-to-speech is running
 
 
-COMMANDS SUPPORTED
 
-	*Text to Speech*
 
-	Command format: "Text to say" "Animation tag while text is playing" 
-	List of animation tags can be found for convenience in the 'animationtags.txt' file.  Note that this file is not used by the script and just
-	included with this package for convenience.
-	Text and animation should be wrapped in quotes.
-	An animation tag is just a single word.
-
-	*Posture*
-
-	Command format: "Posture to assume"
-	Supported postures:
-	-Sit 
-	-Stand
 

@@ -12,12 +12,12 @@ class NaoControllerTests(unittest.TestCase):
 
     def test_do_connect_with_bad_ip_sets_is_connected_false(self):
         robot = nc.NaoController(None)
-        robot.do_connect(['$$$', 9559])
+        robot.do_connect('255.255.255.255 9559')
         self.assertEqual(robot.is_connected, False)
 
     def test_do_connect_with_bad_port_sets_is_connected_false(self):
         robot = nc.NaoController(None)
-        robot.do_connect(['192.168.1',9559])
+        robot.do_connect('1.1.1.1 0000')
         self.assertEqual(robot.is_connected, False)
 
     def mock_speech_proxy(self):
@@ -34,53 +34,44 @@ class NaoControllerTests(unittest.TestCase):
         robot.do_say(None)
         robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with('^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
 
-    '''
-    def test_do_say_with_invalid_args(self):
+    def test_do_say_with_special_characters_invokes_say_with_clean_inputs(self):
         robot = self.mock_speech_proxy()
-        robot.get_say_inputs = mock.Mock(return_value=('fo\"o', 'bar'))
+        robot.get_say_inputs = mock.Mock(return_value=('fo\'o', 'b\"ar'))
         robot.do_say(None)
-        robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with('^startTag(fo\'o) "\\rspd={0}\\bar" ^waitTag(fo\'o)'.format(defaults.SPEECH_SPEED))
-    '''
+        robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with('^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
 
-    '''
-    def test_invoke_command_with_posture_calls_invoke_posture(self):
-        robot = nc.NaoController()
-        robot.invoke_speech = mock.Mock()
-        robot.invoke_method = mock.Mock()
-        robot.invoke_command(None, None, "Posture");
-        robot.invoke_method.assert_called_once_with("Posture")
-        self.assertEqual(robot.invoke_speech.call_count, 0)
+    def test_invoke_toggle_autolife(self):
+        robot = nc.NaoController(None)
+        robot.robot_proxies = {};
+        robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB] = mock.Mock()
+        robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB].getState = mock.Mock()
+        robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB].getState.side_effect = ['interactive', 'solitary', 'disabled']
 
-    def test_invoke_method_with_sit_calls_invoke_sit(self):
-        robot = nc.NaoController()
-        robot.invoke_stand = mock.Mock()
-        robot.invoke_sit = mock.Mock()
-        robot.invoke_method('sit')
-        robot.invoke_sit.assert_called_once
-        self.assertEqual(robot.invoke_stand.call_count, 0)
+        robot.set_autonomous_life = mock.Mock()
+        robot.invoke_toggle_autolife()
+        self.assertEqual(robot.set_autonomous_life.call_count, 0)
 
-    def test_invoke_method_with_stand_calls_invoke_stand(self):
-        robot = nc.NaoController()
-        robot.invoke_stand = mock.Mock()
-        robot.invoke_sit = mock.Mock()
-        robot.invoke_method('stand')
-        robot.invoke_stand.assert_called_once
-        self.assertEqual(robot.invoke_sit.call_count, 0)
+        robot.set_autonomous_life.reset_mock()
+        robot.invoke_toggle_autolife()
+        robot.set_autonomous_life.assert_called_once_with(False)
 
-    def test_invoke_method_with_unknown_posture_calls_nothing(self):
-        robot = nc.NaoController()
-        robot.invoke_stand = mock.Mock()
-        robot.invoke_sit = mock.Mock()
-        robot.invoke_method('unkownposture')
-        self.assertEqual(robot.invoke_stand.call_count, 0)
-        self.assertEqual(robot.invoke_sit.call_count, 0)
+        robot.set_autonomous_life.reset_mock()
+        robot.invoke_toggle_autolife()
+        robot.set_autonomous_life.assert_called_once_with(True)
 
-    def test_invoke_method_with_autolife(self):
-        robot = nc.NaoController()
-        robot.toggle_auto_life = mock.Mock()
-        robot.invoke_method('autolife')
-        self.assertEqual(robot.toggle_auto_life.call_count, 1)
+    def test_clean_speech_removes_non_alpha(self):
+        robot = nc.NaoController(None)
+        self.assertEqual('test', robot.clean_speech('test'))
+        self.assertEqual('tet', robot.clean_speech('te$t'))
+        self.assertEqual('tet', robot.clean_speech('te^t'))
+        self.assertEqual('tet', robot.clean_speech('te\'t'))
+        self.assertEqual('tet', robot.clean_speech('te\"t'))
 
-    '''    
+    def test_clean_speech_keeps_basic_punctuation(self):
+        robot = nc.NaoController(None)
+        self.assertEqual('te.t', robot.clean_speech('te.t'))
+        self.assertEqual('te,t', robot.clean_speech('te,t'))
+        self.assertEqual('te t', robot.clean_speech('te t'))
+ 
 if __name__ == '__main__':
     unittest.main()
