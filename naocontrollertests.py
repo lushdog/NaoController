@@ -1,13 +1,12 @@
 import unittest
-import mock
-import string
-import random
 import defaults
-
-from mock import patch
+import mock
+#from mock import patch
 
 import naocontroller as nc
 
+# disable bad method name linting
+# pragma pylint: disable=C0103
 class NaoControllerTests(unittest.TestCase):
 
     def test_do_connect_with_bad_ip_sets_is_connected_false(self):
@@ -20,10 +19,11 @@ class NaoControllerTests(unittest.TestCase):
         robot.do_connect('1.1.1.1 0000')
         self.assertEqual(robot.is_connected, False)
 
-    def mock_speech_proxy(self):
+    @staticmethod
+    def mock_speech_proxy():
         robot = nc.NaoController(None)
         robot.is_connected = True
-        robot.robot_proxies = {};
+        robot.robot_proxies = {}
         robot.robot_proxies[robot.ANIM_SPEECH_LIB] = mock.Mock()
         robot.robot_proxies[robot.ANIM_SPEECH_LIB].say = mock.Mock()
         return robot
@@ -32,20 +32,23 @@ class NaoControllerTests(unittest.TestCase):
         robot = self.mock_speech_proxy()
         robot.get_say_inputs = mock.Mock(return_value=('foo', 'bar'))
         robot.do_say(None)
-        robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with('^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
+        robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with(
+            '^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
 
     def test_do_say_with_special_characters_invokes_say_with_clean_inputs(self):
         robot = self.mock_speech_proxy()
         robot.get_say_inputs = mock.Mock(return_value=('fo\'o', 'b\"ar'))
         robot.do_say(None)
-        robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with('^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
+        robot.robot_proxies[robot.ANIM_SPEECH_LIB].say.assert_called_once_with(
+            '^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
 
     def test_invoke_toggle_autolife(self):
         robot = nc.NaoController(None)
-        robot.robot_proxies = {};
+        robot.robot_proxies = {}
         robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB] = mock.Mock()
         robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB].getState = mock.Mock()
-        robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB].getState.side_effect = ['interactive', 'solitary', 'disabled']
+        robot.robot_proxies[robot.AUTONOMOUS_LIFE_LIB].getState.side_effect = [
+            'interactive', 'solitary', 'disabled']
 
         robot.set_autonomous_life = mock.Mock()
         robot.invoke_toggle_autolife()
