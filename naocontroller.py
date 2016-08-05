@@ -1,9 +1,13 @@
+"""NaoController.py: Creates an interactive shell session with a Nao robot"""
 import sys
 import re
 import math
 import defaults
 from naoqi import ALProxy
 import cmd2 as cmd
+
+# disable too many public methods and docsctring linting
+# pylint: disable=R0904, C0111
 
 class NaoController(cmd.Cmd):
 
