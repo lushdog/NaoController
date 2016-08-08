@@ -24,8 +24,6 @@ class NaoController(cmd.Cmd):
     intro = 'Welcome to the Nao controller.   Type help or ? to list commands.'
     prompt = '(nao)'
 
-    #COMMAND PROCESSORS
-    
     def do_connect(self, arg):
         """Connect to nao robot-'connect <ip/host> <port>' or 'connect' alone (uses defaults.py)"""
         if self.is_connected:
@@ -72,9 +70,6 @@ class NaoController(cmd.Cmd):
     def do_EOF(self, line):
         return True
     # pragma pylint: enable=unused-argument
-
-
-    #COMMAND INVOKERS
 
     def invoke_connect(self, arg):
         """Takes connection params and builds list of ALProxies"""
@@ -240,7 +235,7 @@ class NaoController(cmd.Cmd):
     @staticmethod
     def clean_speech(speech):
         regex = re.compile('[^a-zA-Z., ]')
-        cleaned = regex.sub('', speech)
+        cleaned = regex.sub('', speech).replace('.', '\\pau=800\\').replace(',', '\\pau=400\\')
         return cleaned
 
     @staticmethod
