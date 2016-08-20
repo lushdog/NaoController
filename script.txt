@@ -1,5 +1,9 @@
 connect
-say
-sit
+autolife
 stand
+autolife
+say
+hello everybody, how are you today?
+bow
+sit
 connect
