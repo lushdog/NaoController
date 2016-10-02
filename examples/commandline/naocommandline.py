@@ -1,12 +1,12 @@
 """NaoController.py: Creates an interactive shell session with a Nao robot
-This class inherits cmd and passes commands and args to controller.py"""
+This class inherits cmd and passes commands and processed args to controller.py"""
 import sys
 import cmd2 as cmd
-import controller
+from naocontroller.core import controller
 
 # disable too many public methods
 # pylint: disable=R0904
-class NaoController(cmd.Cmd):
+class NaoCommandLine(cmd.Cmd):
     """NaoController is a subclass of cmd which enables simple line interpretation. 
     https://docs.python.org/2/library/cmd.html"""
 
@@ -15,11 +15,32 @@ class NaoController(cmd.Cmd):
 
     def do_connect(self, arg):
         """Connect to nao robot-'connect <ip/host> <port>' or 'connect' alone (uses defaults.py)"""
-        self.controller.connect(arg)
+        split_args = self.parse(arg)
+        try:
+            if len(split_args) > 1: #very weak param validation
+                host = split_args[0]
+                port = int(split_args[1]) 
+            else:
+                host = None
+                port = None
+        except ValueError as exception:
+            print 'Connection argument invalid: {0}'.format(exception)
+            return
+        self.controller.connect(host, port)
 
     def do_move(self, arg):
         """Rotate, then moves robot-'move <rotation in hours> <meters to move forward/backward>'"""
-        self.controller.move(arg)
+        split_args = self.parse(arg)
+        if len(split_args) > 1:
+            try:
+                rotation_in_hours = int(split_args[0])
+                distance = float(split_args[1])
+            except ValueError as error:
+                print '\nError:{0}'.format(error)
+        else:
+            print 'Two arguments must be passed to the move command'
+            return
+        self.controller.move(rotation_in_hours, distance)
 
     # pragma pylint: disable=unused-argument
     def do_say(self, arg): 
@@ -54,6 +75,11 @@ class NaoController(cmd.Cmd):
         return True
     # pragma pylint: enable=unused-argument
 
+    @staticmethod
+    def parse(arg):
+        '''Splits args'''
+        return arg.split()
+
     def __init__(self, script):
         '''Pass path to script to run or None for interactive'''
         if script is not None:
@@ -67,8 +93,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         SCRIPT = open(sys.argv[1], 'rt')
         try:
-            NaoController(SCRIPT).cmdloop()
+            NaoCommandLine(SCRIPT).cmdloop()
         finally:
             SCRIPT.close()
     else:
-        NaoController(None).cmdloop()
+        NaoCommandLine(None).cmdloop()
