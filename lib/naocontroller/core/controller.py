@@ -1,32 +1,24 @@
-"""controller.py: 'Business layer' between inputs and robot.py (NaoQI API calls)"""
+"""controller.py: 'Business layer' between inputs and robot.py"""
 import math
 import re
 import time
-import defaults
-import robot
+import naocontroller.core.robot as corerobot
+from naocontroller.defaults import defaults
 
 # disable too many public methods and docsctring linting
 # pylint: disable=R0904, C0111
 
 class Controller(object):
      
-    def connect(self, arg):
+    def connect(self, host, port):
         if self.robot.is_connected:
             print 'Connection to robot already exists.'
             return
-     
-        split_args = self.parse(arg)
-        try:
-            if len(split_args) > 1: #very weak param validation
-                host = split_args[0]
-                port = int(split_args[1]) 
-            else:
-                host = defaults.DEFAULT_IP
-                port = defaults.DEFAULT_PORT
-        except ValueError as exception:
-            print 'Connection argument invalid: {0}'.format(exception)
-            self.robot.is_connected = False
-            return
+
+        if host is None:
+            host = defaults.DEFAULT_IP
+        if port is None:
+            port = defaults.DEFAULT_PORT
         self.robot.connect(host, port)
 
     def say(self, animation, speech):
@@ -39,22 +31,17 @@ class Controller(object):
         animated_speech = self.format_animated_speech(cleaned_animation, cleaned_speech)
         self.robot.say(animated_speech)
 
-    def move(self, arg):
+    def move(self, rotation_in_hours, distance):
         if not self.robot.is_connected:
             self.print_not_connected_error()
             return
-
-        parsed_args = self.parse(arg)
-        if len(parsed_args) < 2:
-            print 'Two arguments must be passed to the move command'
-            return
         try:
-            rotation = self.convert_hour_to_radians(self.clamp(1, int(parsed_args[0]), 12))
-            distance = self.clamp(-10, float(parsed_args[1]), 10)
+            rotation_in_rads = self.convert_hour_to_radians(self.clamp(1, rotation_in_hours, 12))
+            distance_clamped = self.clamp(-10, distance, 10)
         except ValueError as error:
             print '\nError:{0}'.format(error)
             return   
-        self.robot.move(rotation, distance)
+        self.robot.move(rotation_in_rads, distance_clamped)
 
     def stand(self):
         if not self.robot.is_connected:
@@ -124,10 +111,6 @@ class Controller(object):
         print 'You cannot run this command until you connect to robot with the CONNECT command'
 
     @staticmethod
-    def parse(arg):
-        return arg.split()
-
-    @staticmethod
     def convert_hour_to_radians(hour):
         if hour >= 1 and hour <= 6:
             hours_from_12 = -1 * hour
@@ -152,5 +135,6 @@ class Controller(object):
         return animated_speech
 
     def __init__(self):
-        self.robot = robot.Robot()
+        self.robot_is_connected = False
+        self.robot = corerobot.Robot()
        

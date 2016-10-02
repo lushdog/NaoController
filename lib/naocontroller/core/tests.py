@@ -1,23 +1,23 @@
+'''controller.py tests'''
 import unittest
-import defaults
 import mock
 #from mock import patch
-
-import controller
+from naocontroller.core import controller
+from naocontroller.defaults import defaults
 
 # disable bad method name linting
 # pragma pylint: disable=C0103,R0904, C0111
 
 class ControllerTests(unittest.TestCase):
 
-    def test_do_connect_with_bad_ip_sets_is_connected_false(self):
+    def test_do_connect_with_invalid_ip_sets_is_connected_false(self):
         c = controller.Controller()
-        c.connect('255.255.255.255 9559')
+        c.connect('255.255.255.255', 9559)
         self.assertEqual(c.robot.is_connected, False)
 
     def test_do_connect_with_bad_port_sets_is_connected_false(self):
         c = controller.Controller()
-        c.connect('1.1.1.1 0000')
+        c.connect('1.1.1.1', 0000)
         self.assertEqual(c.robot.is_connected, False)
     
     @staticmethod
