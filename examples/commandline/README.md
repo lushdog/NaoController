@@ -1,5 +1,6 @@
 #naocommandline
 Command line interface that can perform basic actions on the Nao robot using the naocontroller package
+
 Note: Put naocontroller\lib on your PYTHONPATH
 
 Usage: python naocommandline.py [path to script file]
