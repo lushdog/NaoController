@@ -1,15 +1,18 @@
 #naocommandline
 Command line interface that can perform basic actions on the Nao robot using the naocontroller package
 
-Note: Put naocontroller\lib on your PYTHONPATH
+##usage
+Extract .zip to c:\yourfoldername
+Put `c:\yourfoldername\naocontroller\lib` on your PYTHONPATH  
+Install naoqi python package  
+In a shell move to `c:\yourfoldername\naocontroller\examples\naocommandline`
+Execute `python naocommandline.py [path to script file]`
 
-Usage: python naocommandline.py [path to script file]
-
-###How to use the console  
+###how to use the console  
 Type 'help' to see list of supported commands  
 Type 'help command' to see help for certain command  
 
-###Sample command usage
+###sample command usage
 'help' - show all available commands
 'quit' - exits the session  
 'connect' - connects to nao using ip and port in the defaults.py file  

@@ -6,4 +6,3 @@ say
 hello everybody, how are you today?
 bow
 sit
-connect

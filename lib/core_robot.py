@@ -1,15 +1,22 @@
-"""robot.py: Thin class that handles creating proxies and making calls to NaoQi API"""
+"""core_robot.py: Thin class that handles creating proxies and making calls to NaoQi API"""
 import math
 from naoqi import ALProxy
 
-# disable too many public methods, too many attributes and docsctring linting
-# pylint: disable=R0904, R0902, C0111
+# pylint: disable=line-too-long,missing-docstring
 
-class Robot(object):
+class CoreRobot(object):
+
+    def __init__(self):
+        self.animated_speech_proxy = None
+        self.motion_proxy = None
+        self.posture_proxy = None
+        self.awareness_proxy = None
+        self.autonomous_move_proxy = None
+        self.autonomous_life_proxy = None
 
     def connect(self, host, port):
         """Takes connection params and builds list of ALProxies"""
-        print 'Connecting to robot on {0}:{1}...'.format(host, port)
+        print 'Core - Connecting to robot on {0}:{1}...'.format(host, port)
         try:
             self.animated_speech_proxy = ALProxy("ALAnimatedSpeech", host, port)
             self.motion_proxy = ALProxy("ALMotion", host, port)
@@ -18,11 +25,8 @@ class Robot(object):
             self.autonomous_move_proxy = ALProxy("ALAutonomousMoves", host, port)
             self.autonomous_life_proxy = ALProxy("ALAutonomousLife", host, port)
         except Exception as exception: # pylint: disable=broad-except
-            print '\nCould not create proxy:{0}', format(exception)
-            self.is_connected = False
-            return
-        self.is_connected = True
-        #self.set_autonomous_life(False)
+            raise ValueError('Could not create proxy:{0}', format(exception))
+        self.set_autonomous_life(False)
 
     def say(self, animated_speech):
         self.animated_speech_proxy.say(animated_speech) 
@@ -92,12 +96,3 @@ class Robot(object):
     def print_sub_system_update(set_on, sub_process):
         on_off = ['off', 'on']
         print 'Turning {0} {1}...'.format(on_off[set_on], sub_process)
-
-    def __init__(self):
-        self.is_connected = False
-        self.animated_speech_proxy = None
-        self.motion_proxy = None
-        self.posture_proxy = None
-        self.awareness_proxy = None
-        self.autonomous_move_proxy = None
-        self.autonomous_life_proxy = None
