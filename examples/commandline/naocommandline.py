@@ -14,9 +14,9 @@ class NaoCommandLine(cmd.Cmd):
     https://docs.python.org/2/library/cmd.html"""
 
     intro = 'Welcome to the Nao controller.   Type help or ? to list commands.'
-    prompt = '(nao)'
-    case_insensitive = False 
-
+    prompt = '(nao)->'
+    non_connected_commands = ('connect', 'EOF', 'exit', '?', 'help')
+    
     def __init__(self, script):
         '''Pass path to script to run or None for interactive'''
         if script is not None:
@@ -48,7 +48,7 @@ class NaoCommandLine(cmd.Cmd):
             vidbot = video_robot.VideoRobot()
             corebot.connect(host, port)
             vidbot.connect(host, port)
-        except ValueError as error:
+        except Exception as error: # pylint: disable=broad-except
             print error
             return
 
@@ -58,7 +58,13 @@ class NaoCommandLine(cmd.Cmd):
 
     def precmd(self, line):
         if not self.is_connected:
-            if not line.startswith('connect') and not line.startswith('EOF') and not line.startswith('help') and not line.startswith('?'):
+            needs_connection = True
+            for index in range(len(self.non_connected_commands)):
+                non_connection_command = self.non_connected_commands[index]
+                if  line.startswith(non_connection_command):
+                    needs_connection = False
+                    break
+            if needs_connection:
                 line = 'not_connected'
         return line
 
@@ -70,16 +76,30 @@ class NaoCommandLine(cmd.Cmd):
     def do_move(self, arg):
         """Rotate, then moves robot-'move <rotation in hours> <meters to move forward/backward>'"""
         split_args = self.parse(arg)
-        if len(split_args) > 1:
+        if len(split_args) < 1:
+            print 'Two arguments must be passed to the move command'
+            return
+        else:
             try:
                 rotation_in_hours = int(split_args[0])
                 distance = float(split_args[1])
+                self.core_controller.move(rotation_in_hours, distance)
             except ValueError as error:
-                print '\nError:{0}'.format(error)
-        else:
-            print 'Two arguments must be passed to the move command'
+                print 'Invalid value passed to command.  Try numbers:{0}'.format(error)
+
+    def do_rotate_head(self, arg):
+        """Rotates head left and right-'rotate_head <rotation in hours>'"""
+        split_args = self.parse(arg)
+        if len(split_args) < 1:
+            print 'One number must be passed to rotate_head command'
             return
-        self.core_controller.move(rotation_in_hours, distance)
+        else:
+            try:
+                rotation_in_hours = split_args[0]
+                self.core_controller.rotate_head(rotation_in_hours)
+            except ValueError as error:
+                print 'Invalid value passed to command.  Try a number:{0}'.format(error)
+
 
     def do_say(self, arg): 
         """Robot will say a line of text and play an animation."""
@@ -99,7 +119,10 @@ class NaoCommandLine(cmd.Cmd):
 
     def do_autolife(self, arg):
         """Toggles autonomous life state of the robot."""
-        self.core_controller.toggle_autolife()
+        try:
+            self.core_controller.toggle_autolife()
+        except ValueError as error:
+            print 'Cannot change autolife state: {0}'.format(error)
 
     def do_hold(self, arg):
         """Open hand for 2 seconds, then closes it.  Use 'drop' command to release ."""
@@ -117,6 +140,22 @@ class NaoCommandLine(cmd.Cmd):
         """Takes a picture with bottom camera and shows it on the screen"""
         self.video_controller.get_picture(True)
 
+    def do_set_autoexposure(self, arg):
+        """Sets autoexposure from 0-3 - 'set_autoexposure 2'
+        0: Average scene Brightness
+        1: Weighted average scene Brightness (default)
+        2: Adaptive weighted auto exposure for hightlights
+        3: Adaptive weighted auto exposure for lowlights"""
+        split_args = self.parse(arg)
+        if len(split_args) < 1:
+            print 'One number must be passed to rotate_head command'
+            return
+        else:
+            self.video_controller.set_auto_exposure(split_args[0])
+
+    def do_exit(self, arg):
+        """Quits the interactive session"""
+        return True
 
     def do_EOF(self, line): 
         """This command is called when a script ends.  

@@ -25,7 +25,7 @@ class CoreRobot(object):
             self.autonomous_move_proxy = ALProxy("ALAutonomousMoves", host, port)
             self.autonomous_life_proxy = ALProxy("ALAutonomousLife", host, port)
         except Exception as exception: # pylint: disable=broad-except
-            raise ValueError('Could not create proxy:{0}', format(exception))
+            raise Exception('Could not create proxy:{0}', format(exception))
         self.set_autonomous_life(False)
 
     def say(self, animated_speech):
@@ -39,7 +39,7 @@ class CoreRobot(object):
         motion.setExternalCollisionProtectionEnabled('All', True)
         motion.moveTo(0, 0, rotation)
         motion.moveTo(distance, 0, 0)
-
+        
     def open_hand(self, hand):
         self.motion_proxy.openHand(hand)
  
@@ -48,18 +48,12 @@ class CoreRobot(object):
 
     def set_stiffness(self, joint, stiffness):
         print 'Setting {0} to stiffness {1}...'.format(joint, stiffness)
-        try:
-            self.motion_proxy.stiffnessInterpolation(joint, stiffness, 1.0) 
-        except Exception as exception: # pylint: disable=broad-except
-            print 'Error setting {0} stiffness to {1}:{2}'.format(joint, stiffness, exception)
-
+        self.motion_proxy.stiffnessInterpolation(joint, stiffness, 1.0) 
+        
     def set_joint_angle(self, joint, angle_degrees, speed=0.1):
         print 'Setting {0} to {1} angle in degrees...'.format(joint, angle_degrees)
-        try:
-            self.motion_proxy.setAngles(joint, math.radians(angle_degrees), speed)
-        except Exception as exception: # pylint: disable=broad-except
-            print 'Error setting {0} angle to {1}:{2}'.format(joint, angle_degrees, exception)
-
+        self.motion_proxy.angleInterpolationWithSpeed(joint, math.radians(angle_degrees), speed)
+        
     def set_pose(self, pose):
         self.posture_proxy.goToPosture(pose, 0.5) 
       

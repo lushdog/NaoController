@@ -11,7 +11,9 @@ Pass robot instance to matching controller
 	robot = core_robot.CoreRobot()
 	robot.connect(host, port)
 	controller = core_controller.CoreController(robot) 
-    self.controller.move(rotation, distance)
+    controller.move(rotation, distance)  
+	controller.say()
+	
 
 ##file structure
 
