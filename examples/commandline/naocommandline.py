@@ -76,16 +76,30 @@ class NaoCommandLine(cmd.Cmd):
     def do_move(self, arg):
         """Rotate, then moves robot-'move <rotation in hours> <meters to move forward/backward>'"""
         split_args = self.parse(arg)
-        if len(split_args) > 1:
+        if len(split_args) < 1:
+            print 'Two arguments must be passed to the move command'
+            return
+        else:
             try:
                 rotation_in_hours = int(split_args[0])
                 distance = float(split_args[1])
+                self.core_controller.move(rotation_in_hours, distance)
             except ValueError as error:
-                print '\nError:{0}'.format(error)
-        else:
-            print 'Two arguments must be passed to the move command'
+                print 'Invalid value passed to command.  Try numbers:{0}'.format(error)
+
+    def do_rotate_head(self, arg):
+        """Rotates head left and right-'rotate_head <rotation in hours>'"""
+        split_args = self.parse(arg)
+        if len(split_args) < 1:
+            print 'One number must be passed to rotate_head command'
             return
-        self.core_controller.move(rotation_in_hours, distance)
+        else:
+            try:
+                rotation_in_hours = split_args[0]
+                self.core_controller.rotate_head(rotation_in_hours)
+            except ValueError as error:
+                print 'Invalid value passed to command.  Try a number:{0}'.format(error)
+
 
     def do_say(self, arg): 
         """Robot will say a line of text and play an animation."""
@@ -105,7 +119,10 @@ class NaoCommandLine(cmd.Cmd):
 
     def do_autolife(self, arg):
         """Toggles autonomous life state of the robot."""
-        self.core_controller.toggle_autolife()
+        try:
+            self.core_controller.toggle_autolife()
+        except ValueError as error:
+            print 'Cannot change autolife state: {0}'.format(error)
 
     def do_hold(self, arg):
         """Open hand for 2 seconds, then closes it.  Use 'drop' command to release ."""
@@ -126,12 +143,15 @@ class NaoCommandLine(cmd.Cmd):
     def do_set_autoexposure(self, arg):
         """Sets autoexposure from 0-3 - 'set_autoexposure 2'
         0: Average scene Brightness
-        1: Weighted average scene Brightness
+        1: Weighted average scene Brightness (default)
         2: Adaptive weighted auto exposure for hightlights
         3: Adaptive weighted auto exposure for lowlights"""
-        
         split_args = self.parse(arg)
-        self.video_controller.set_auto_exposure(split_args[0])
+        if len(split_args) < 1:
+            print 'One number must be passed to rotate_head command'
+            return
+        else:
+            self.video_controller.set_auto_exposure(split_args[0])
 
     def do_exit(self, arg):
         """Quits the interactive session"""
