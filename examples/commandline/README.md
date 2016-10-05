@@ -14,7 +14,7 @@ Type 'help command' to see help for certain command
 
 ###sample command usage
 'help' - show all available commands
-'quit' - exits the session  
+'exit' - exits the session  
 'connect' - connects to nao using ip and port in the defaults.py file  
 'connect 192.168.1.1 9559' - connects to nao using ip and port specified  
 **Connection must be made before any commands below can be issued**  

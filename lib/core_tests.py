@@ -1,4 +1,4 @@
-'''core_tests.py tests'''
+'''core_tests.py: core_roboty.py and core_controller.py tests'''
 import unittest
 from mock import patch
 import mock
@@ -38,17 +38,17 @@ class CoreTests(unittest.TestCase):
 
     @staticmethod
     def test_controller_say_with_valid_args_invokes_robot_say():
-        with patch('core_robot.CoreRobot') as mock_robot:
-            controller.CoreController(mock_robot).say('foo', 'bar')
-            mock_robot.say.assert_called_once_with(
-                '^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
+        mock_robot = mock.Mock()
+        controller.CoreController(mock_robot).say('foo', 'bar')
+        mock_robot.say.assert_called_once_with(
+            '^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
 
     @staticmethod
     def test_controller_say_with_special_characters_invokes_robot_say_with_clean_inputs():
-        with patch('core_robot.CoreRobot') as mock_robot:
-            controller.CoreController(mock_robot).say('fo\'o', 'b\"ar')
-            mock_robot.say.assert_called_once_with(
-                '^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
+        mock_robot = mock.Mock()
+        controller.CoreController(mock_robot).say('fo\'o', 'b\"ar')
+        mock_robot.say.assert_called_once_with(
+            '^startTag(foo) "\\rspd={0}\\bar" ^waitTag(foo)'.format(defaults.SPEECH_SPEED))
 
     def test_clean_speech_removes_non_alpha(self):
         self.assertEqual('test', controller.CoreController.clean_animated_speech('test'))
