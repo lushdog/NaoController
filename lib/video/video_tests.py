@@ -1,10 +1,8 @@
 '''video_tests.py:  video_controller.py and video_test.py tests'''
 import unittest
-from mock import patch
 import mock
-import video_controller as controller
-import video_robot as robot
-import defaults
+import naocontroller.lib.video.video_controller as controller
+import naocontroller.lib.video.video_robot as robot
 
 # pylint: disable=line-too-long,missing-docstring,invalid-name,protected-access
 
@@ -46,10 +44,6 @@ class VideoTests(unittest.TestCase):
 
     def test_clam_mid_no_clamp(self):
         self.assertEquals(controller.VideoController.clamp(0, 2, 3), 2)
-
-
-
-
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,7 @@
 import math
 import re
 import time
-import defaults
+import naocontroller.lib.defaults.defaults as default_vals
 
 #pylint: disable=line-too-long,missing-docstring
 
@@ -22,10 +22,9 @@ class CoreController(object):
             rotation_in_rads = self.convert_hour_to_radians(self.clamp(1, int(rotation_in_hours), 12))
             distance_clamped = self.clamp(-10, int(distance), 10)
             self.robot.move(rotation_in_rads, distance_clamped)
-        except TypeError as error:
-            raise  TypeError('\nRotation and distance should both be numbers: {0}'.format(error))
+        except ValueError as error:
+            raise  ValueError('\nRotation and distance should both be numbers: {0}'.format(error))
                
-
     def rotate_head(self, rotation_in_hours):
         try: 
             rotation_in_rads = self.convert_hour_to_radians(self.clamp(1, int(rotation_in_hours), 12))
@@ -33,8 +32,8 @@ class CoreController(object):
             self.robot.set_stiffness('HeadYaw', 1)
             self.robot.set_joint_angle('HeadYaw', roatation_in_degrees)
             self.robot.set_stiffness('HeadYaw', 0)
-        except TypeError as error:
-            raise TypeError('\nRotation and distance should both be numbers: {0}'.format(error))
+        except ValueError as error:
+            raise ValueError('\nRotation and distance should both be numbers: {0}'.format(error))
 
     def stand(self):
         print 'Standing...'
@@ -98,6 +97,6 @@ class CoreController(object):
     @staticmethod
     def format_animated_speech(animation, speech):
         animated_speech = '^startTag({0}) "\\rspd={2}\\{1}" ^waitTag({0})'.format(
-            animation.lower(), speech, defaults.SPEECH_SPEED)
+            animation.lower(), speech, default_vals.SPEECH_SPEED)
         return animated_speech
        

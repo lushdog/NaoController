@@ -2,8 +2,11 @@
 API written in Python to abstract commands from NaoQI code
 
 ##usage
-Put `c:\yourfoldername\naocontroller\lib` on your PYTHONPATH
+Extract .zip to c:\yourfoldername\naocontroller
+Put `c:\yourfoldername` on your PYTHONPATH  
 Install naoqi python package
+Install PIL python package
+
 Create instance of a robot and connect to it
 Pass robot instance to matching controller
 
@@ -15,22 +18,29 @@ Pass robot instance to matching controller
 	controller.say()
 	
 
-##file structure
+##package structure
+e.g. nacontroller.lib.core.*
 
 \lib
 
-----core_controller.py  (basic movement, animations and speech)
+	\core  
 
-----core_robot.py       (NaoQI API calls)
+	    ----core_controller.py  (basic movement, animations and speech)
 
-----core_tests.py       (Unit tests)
+        ----core_robot.py       (NaoQI API calls)
 
-----video_controller.py (camera access)
+        ----core_tests.py       (Unit tests)
 
-----video_robot.py
+    \video  
 
-----video_tests.py
+        ----video_controller.py (camera access)
 
-----defaults.py 	   
+        ----video_robot.py
+
+        ----video_tests.py  
+
+    \defaults
+
+        ----defaults.py 	   
 
 \examples

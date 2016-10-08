@@ -2,11 +2,10 @@
 Command line interface that can perform basic actions on the Nao robot using the naocontroller package
 
 ##usage
-Extract .zip to c:\yourfoldername
-Put `c:\yourfoldername\naocontroller\lib` on your PYTHONPATH  
-Install naoqi python package  
+Extract and install naocontroller source
+
 In a shell move to `c:\yourfoldername\naocontroller\examples\naocommandline`
-Execute `python naocommandline.py [path to script file]`
+Execute `python naocommandline.py [optional: path to script file]`
 
 ###how to use the console  
 Type 'help' to see list of supported commands  

@@ -1,11 +1,11 @@
 """naocommandline.py: Interactive shell session with a Nao robot"""
 import sys
 import cmd
-import core_controller
-import core_robot
-import video_controller
-import video_robot
-import defaults
+import naocontroller.lib.core.core_controller as core_controller
+import naocontroller.lib.core.core_robot as core_robot
+import naocontroller.lib.video.video_controller as video_controller
+import naocontroller.lib.video.video_robot as video_robot
+import naocontroller.lib.defaults.defaults as default_vals
 
 #pylint: disable=unused-argument,line-too-long,invalid-name,no-self-use
 
@@ -31,8 +31,8 @@ class NaoCommandLine(cmd.Cmd):
 
     def do_connect(self, arg):
         """Connect to nao robot-'connect <ip/host> <port>' or 'connect' alone (uses api\\defaults.py)"""
-        host = defaults.DEFAULT_IP
-        port = defaults.DEFAULT_PORT
+        host = default_vals.DEFAULT_IP
+        port = default_vals.DEFAULT_PORT
         
         try:
             split_args = self.parse(arg)
