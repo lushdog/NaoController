@@ -35,30 +35,24 @@ def main():
 def connect():
     command_line = commandline.NaoCommandLine(None)
     command_line.use_rawinput = False
-    command_line.onecmd('connect ')
-    beaker_session = bottle.request.environ.get('beaker.session')
-    beaker_session['commandline'] = command_line
-    return None
+    _set_command_line(command_line)
+    return _invoke_command('connect ')
 
 @post('/send')
 def send():
-    beaker_session = bottle.request.environ.get('beaker.session')
-    command_line = beaker_session['commandline']
-    command = request.json
+    return _invoke_command(request.json)
 
+def _set_command_line(command_line):
+    bottle.request.environ.get('beaker.session')['commandline'] = command_line
+
+def _get_command_line():
+    return bottle.request.environ.get('beaker.session')['commandline']
+
+def _invoke_command(command):
     old_stdout = sys.stdout
     sys.stdout = new_stdout = StringIO()
-    command_line.onecomd(command)
+    _get_command_line().onecmd(command)
     sys.stdout = old_stdout
-    return new_stdout.getValue()
-
-'''
-@bottle.route('/test')
-def test():
-  s = bottle.request.environ.get('beaker.session')
-  s['test'] = s.get('test',0) + 1
-  s.save()
-  return 'Test counter: %d' % s['test']
-'''
+    return new_stdout.getvalue()
 
 bottle.run(app=APP, host='localhost', port=8080, debug=True)
