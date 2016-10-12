@@ -29,33 +29,6 @@ class NaoCommandLine(cmd.Cmd):
         self.video_controller = None
         self.is_connected = False
 
-    def do_connect(self, arg):
-        """Connect to nao robot-'connect <ip/host> <port>' or 'connect' alone (uses api\\defaults.py)"""
-        host = default_vals.DEFAULT_IP
-        port = default_vals.DEFAULT_PORT
-        
-        try:
-            split_args = self.parse(arg)
-            if len(split_args) > 1: 
-                host = split_args[0]
-                port = int(split_args[1]) 
-        except ValueError as exception:
-            print 'Connection argument invalid: {0}'.format(exception)
-            return
-
-        try:
-            corebot = core_robot.CoreRobot()
-            vidbot = video_robot.VideoRobot()
-            corebot.connect(host, port)
-            vidbot.connect(host, port)
-        except Exception as error: # pylint: disable=broad-except
-            print error
-            return
-
-        self.core_controller = core_controller.CoreController(corebot)
-        self.video_controller = video_controller.VideoController(vidbot)
-        self.is_connected = True
-
     def precmd(self, line):
         if not self.is_connected:
             needs_connection = True
@@ -71,11 +44,38 @@ class NaoCommandLine(cmd.Cmd):
     def do_not_connected(self, arg):
         """This command is run if you attempt to run a command that needs a connection without connecting first.
         Do not use this command directly."""
-        print 'To use this command you must first "connect".'
+        self.stdout.write('To use this command you must first "connect"\n')
+
+    def do_connect(self, arg):
+        """Connect to nao robot-'connect <ip/host> <port>' or 'connect' alone (uses api\\defaults.py)"""
+        host = default_vals.DEFAULT_IP
+        port = default_vals.DEFAULT_PORT
+        
+        try:
+            split_args = self._parse(arg)
+            if len(split_args) > 1: 
+                host = split_args[0]
+                port = int(split_args[1]) 
+        except ValueError as exception:
+            self.stdout.write('Connection argument invalid: {0}\n'.format(exception))
+            return
+
+        try:
+            corebot = core_robot.CoreRobot()
+            vidbot = video_robot.VideoRobot()
+            corebot.connect(host, port)
+            vidbot.connect(host, port)
+        except Exception as error: # pylint: disable=broad-except
+            self.stdout.write('Connection failed: {0}\n'.format(error))
+            return
+
+        self.core_controller = core_controller.CoreController(corebot)
+        self.video_controller = video_controller.VideoController(vidbot)
+        self.is_connected = True
 
     def do_move(self, arg):
         """Rotate, then moves robot-'move <rotation in hours> <meters to move forward/backward>'"""
-        split_args = self.parse(arg)
+        split_args = self._parse(arg)
         if len(split_args) < 1:
             print 'Two arguments must be passed to the move command'
             return
@@ -85,20 +85,20 @@ class NaoCommandLine(cmd.Cmd):
                 distance = float(split_args[1])
                 self.core_controller.move(rotation_in_hours, distance)
             except ValueError as error:
-                print 'Invalid value passed to command.  Try numbers:{0}'.format(error)
+                self.stdout.write('Invalid value passed to command.  Try numbers:{0}\n'.format(error))
 
     def do_rotate_head(self, arg):
         """Rotates head left and right-'rotate_head <rotation in hours>'"""
-        split_args = self.parse(arg)
+        split_args = self._parse(arg)
         if len(split_args) < 1:
-            print 'One number must be passed to rotate_head command'
+            self.stdout.write('One number must be passed to rotate_head command\n')
             return
         else:
             try:
                 rotation_in_hours = split_args[0]
                 self.core_controller.rotate_head(rotation_in_hours)
             except ValueError as error:
-                print 'Invalid value passed to command.  Try a number:{0}'.format(error)
+                self.stdout.write('Invalid value passed to command.  Try a number:{0}\n'.format(error))
 
 
     def do_say(self, arg): 
@@ -122,7 +122,7 @@ class NaoCommandLine(cmd.Cmd):
         try:
             self.core_controller.toggle_autolife()
         except ValueError as error:
-            print 'Cannot change autolife state: {0}'.format(error)
+            self.stdout.write('Cannot change autolife state: {0}\n'.format(error))
 
     def do_hold(self, arg):
         """Open hand for 2 seconds, then closes it.  Use 'drop' command to release ."""
@@ -146,9 +146,9 @@ class NaoCommandLine(cmd.Cmd):
         1: Weighted average scene Brightness (default)
         2: Adaptive weighted auto exposure for hightlights
         3: Adaptive weighted auto exposure for lowlights"""
-        split_args = self.parse(arg)
+        split_args = self._parse(arg)
         if len(split_args) < 1:
-            print 'One number must be passed to rotate_head command'
+            self.stdout.write('One number must be passed to set_auto_exposure command\n')
             return
         else:
             self.video_controller.set_auto_exposure(split_args[0])
@@ -163,7 +163,7 @@ class NaoCommandLine(cmd.Cmd):
         return True
     
     @staticmethod
-    def parse(arg):
+    def _parse(arg):
         """Splits line"""
         return arg.split()
 

@@ -45,9 +45,9 @@ class VideoRobot(object):
             data = capture[6]
             try:    
                 image = self._convert_capture_to_image(width, height, 'RGB', data)
-                timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-                image.save(timestamp + '.png', "PNG")
-                image.show()
+                #timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+                #image.save(timestamp + '.png', "PNG")
+                #image.show()
             except IOError as error: 
                 print 'Error saving image: {0}'.format(error)
             finally:

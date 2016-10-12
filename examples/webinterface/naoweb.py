@@ -83,10 +83,13 @@ def _invoke_command(command):
     """Redirects 'console' output, invokes commandline-style command and returns console output
         Note: NaoCommandLine catches most every exception and ouputs error messages to console
         which is what naoweb does as well therefore no all invoked commands will return 200 OK."""
-    old_stdout = _get_command_line().stdout 
-    _get_command_line().stdout = new_stdout = StringIO()
-    _get_command_line().onecmd(command)
-    _get_command_line().stdout = old_stdout
+    command_line = _get_command_line()
+    old_stdout = _get_command_line().stdout
+    command_line.stdout = new_stdout = StringIO()
+    #precmd() is not run when we use onecmd (or raw_input = False?)
+    command = command_line.precmd(command) 
+    command_line.onecmd(command)
+    command_line.stdout = old_stdout
     return new_stdout.getvalue()
 
 bottle.run(app=APP, host='localhost', port=8080, debug=True)
