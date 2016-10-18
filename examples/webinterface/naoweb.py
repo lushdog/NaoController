@@ -63,7 +63,7 @@ def get_camera_image(camera_name='top'):
 
     if image is not None:
         output = StringIO()
-        image.save(output, "PNG")
+        image.save(output, "JPEG", quality=90, progressive=True)
         contents = output.getvalue().encode("base64")
         output.close()
         #contents = contents.split('\n')[0] #comment this if it doesn't work
@@ -86,7 +86,6 @@ def _invoke_command(command):
     command_line = _get_command_line()
     old_stdout = _get_command_line().stdout
     command_line.stdout = new_stdout = StringIO()
-    #precmd() is not run when we use onecmd (or raw_input = False?)
     command = command_line.precmd(command) 
     command_line.onecmd(command)
     command_line.stdout = old_stdout
