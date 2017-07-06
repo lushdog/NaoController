@@ -4,6 +4,8 @@ from naoqi import ALProxy
 
 # pylint: disable=line-too-long,missing-docstring
 
+# test commit
+
 class CoreRobot(object):
 
     def __init__(self):
